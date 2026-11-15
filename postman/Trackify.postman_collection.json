@@ -1,0 +1,64 @@
+{
+  "info": {
+    "name": "Trackify API",
+    "_postman_id": "trackify-api-collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "expenseId", "value": "" },
+    { "key": "incomeId", "value": "" },
+    { "key": "salaryId", "value": "" },
+    { "key": "categoryId", "value": "" },
+    { "key": "noteId", "value": "" },
+    { "key": "reminderId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        { "name": "Health Check", "request": { "method": "GET", "url": "{{baseUrl}}/api/health" } }
+      ]
+    },
+    {
+      "name": "Expenses",
+      "item": [
+        {
+          "name": "Create Expense",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"title\":\"Groceries\",\"amount\":1250,\"category\":\"{{categoryId}}\",\"date\":\"2026-09-12T10:30:00.000Z\",\"note\":\"Monthly groceries\"}" },
+            "url": "{{baseUrl}}/api/expenses"
+          }
+        },
+        { "name": "Get Expenses", "request": { "method": "GET", "url": "{{baseUrl}}/api/expenses" } },
+        { "name": "Get Expense", "request": { "method": "GET", "url": "{{baseUrl}}/api/expenses/{{expenseId}}" } },
+        {
+          "name": "Update Expense",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"amount\":1400,\"note\":\"Updated\"}" },
+            "url": "{{baseUrl}}/api/expenses/{{expenseId}}"
+          }
+        },
+        { "name": "Delete Expense", "request": { "method": "DELETE", "url": "{{baseUrl}}/api/expenses/{{expenseId}}" } }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        { "name": "Monthly Report", "request": { "method": "GET", "url": "{{baseUrl}}/api/reports/monthly?year=2026&month=9" } },
+        { "name": "Yearly Report", "request": { "method": "GET", "url": "{{baseUrl}}/api/reports/yearly?year=2026" } }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        { "name": "Seed Defaults", "request": { "method": "POST", "url": "{{baseUrl}}/api/categories/seed/defaults" } },
+        { "name": "Get Categories", "request": { "method": "GET", "url": "{{baseUrl}}/api/categories" } }
+      ]
+    }
+  ]
+}

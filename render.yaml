@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: trackify-api
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        sync: false   # paste your MongoDB Atlas connection string in the Render dashboard
