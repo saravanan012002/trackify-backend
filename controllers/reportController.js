@@ -109,6 +109,7 @@ exports.getMonthlyReport = asyncHandler(async (req, res) => {
       expenses,
       balance: income - expenses,
       cumulativeBalance,
+      monthlyBalance: income + (salary?.amount || 0) - expenses,
       savingsRate: income > 0 ? Number((((income - expenses) / income) * 100).toFixed(2)) : 0,
       categoryBreakdown,
       dailyExpenses
