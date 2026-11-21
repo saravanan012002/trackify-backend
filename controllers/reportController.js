@@ -17,6 +17,34 @@ const totals = async (Model, start, end) => {
   return result[0]?.total || 0;
 };
 
+// Everything earned/spent BEFORE a given month (for the carried-forward balance)
+const openingBalanceBefore = async (year, month, start) => {
+  const sumBefore = async (Model) => {
+    const r = await Model.aggregate([
+      { $match: { date: { $lt: start } } },
+      { $group: { _id: null, total: { $sum: "$amount" } } }
+    ]);
+    return r[0]?.total || 0;
+  };
+  const salaryBefore = async () => {
+    const r = await Salary.aggregate([
+      {
+        $match: {
+          $or: [{ year: { $lt: year } }, { year, month: { $lt: month } }]
+        }
+      },
+      { $group: { _id: null, total: { $sum: "$amount" } } }
+    ]);
+    return r[0]?.total || 0;
+  };
+  const [inc, exp, sal] = await Promise.all([
+    sumBefore(Income),
+    sumBefore(Expense),
+    salaryBefore()
+  ]);
+  return inc + sal - exp;
+};
+
 exports.getMonthlyReport = asyncHandler(async (req, res) => {
   const year = Number(req.query.year);
   const month = Number(req.query.month);
@@ -31,7 +59,7 @@ exports.getMonthlyReport = asyncHandler(async (req, res) => {
   const start = startOfMonth(year, month);
   const end = endOfMonth(year, month);
 
-  const [income, expenses, salary, categoryBreakdown, dailyExpenses] =
+  const [income, expenses, salary, categoryBreakdown, dailyExpenses, openingBalance] =
     await Promise.all([
       totals(Income, start, end),
       totals(Expense, start, end),
@@ -75,40 +103,19 @@ exports.getMonthlyReport = asyncHandler(async (req, res) => {
           }
         },
         { $sort: { _id: 1 } }
-      ])
+      ]),
+      openingBalanceBefore(year, month, start)
     ]);
-
-      // Calculate cumulative totals up to the selected month
-  const [allIncome, allExpenses, allSalaries] = await Promise.all([
-    totals(Income, new Date(0), end),
-    totals(Expense, new Date(0), end),
-    Salary.find({
-      $or: [
-        { year: { $lt: year } },
-        { year, month: { $lte: month } }
-      ]
-    })
-  ]);
-
-  // Calculate total salary credited so far
-  const cumulativeSalary = allSalaries.reduce(
-    (sum, item) => sum + Number(item.amount || 0),
-    0
-  );
-
-  // Running balance across all months
-  const cumulativeBalance =
-    cumulativeSalary + allIncome - allExpenses;
 
   res.json({
     success: true,
     data: {
       period: { year, month },
+      openingBalance,
       income,
       salary: salary?.amount || 0,
       expenses,
       balance: income - expenses,
-      cumulativeBalance,
       savingsRate: income > 0 ? Number((((income - expenses) / income) * 100).toFixed(2)) : 0,
       categoryBreakdown,
       dailyExpenses
