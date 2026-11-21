@@ -17,6 +17,34 @@ const totals = async (Model, start, end) => {
   return result[0]?.total || 0;
 };
 
+// Month ku MUNNAADI ulla ellam: income + salary - expenses
+const openingBalanceBefore = async (year, month, start) => {
+  const sumBefore = async (Model) => {
+    const r = await Model.aggregate([
+      { $match: { date: { $lt: start } } },
+      { $group: { _id: null, total: { $sum: "$amount" } } }
+    ]);
+    return r[0]?.total || 0;
+  };
+  const salaryBefore = async () => {
+    const r = await Salary.aggregate([
+      {
+        $match: {
+          $or: [{ year: { $lt: year } }, { year, month: { $lt: month } }]
+        }
+      },
+      { $group: { _id: null, total: { $sum: "$amount" } } }
+    ]);
+    return r[0]?.total || 0;
+  };
+  const [inc, exp, sal] = await Promise.all([
+    sumBefore(Income),
+    sumBefore(Expense),
+    salaryBefore()
+  ]);
+  return inc + sal - exp;
+};
+
 exports.getMonthlyReport = asyncHandler(async (req, res) => {
   const year = Number(req.query.year);
   const month = Number(req.query.month);
