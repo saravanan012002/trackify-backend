@@ -127,7 +127,7 @@ exports.getMonthlyReport = asyncHandler(async (req, res) => {
   // Running balance across all months
   const cumulativeBalance =
     cumulativeSalary + allIncome - allExpenses;
-
+  const totalIncome = income + (salary?.amount || 0);
   res.json({
     success: true,
     data: {
@@ -135,9 +135,9 @@ exports.getMonthlyReport = asyncHandler(async (req, res) => {
       income,
       salary: salary?.amount || 0,
       expenses,
-      balance: income - expenses,
+      balance: totalIncome - expenses,
       cumulativeBalance,
-      savingsRate: income > 0 ? Number((((income - expenses) / income) * 100).toFixed(2)) : 0,
+      savingsRate: totalIncome > 0 ? Number((((totalIncome - expenses) / totalIncome) * 100).toFixed(2)) : 0,
       categoryBreakdown,
       dailyExpenses
     }
